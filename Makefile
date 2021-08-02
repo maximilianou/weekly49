@@ -11,15 +11,17 @@ step00 view-hostname:
 	@echo $(servers-exec-cmd)
 	@echo '$(servers-exec-usr-id)'
 
-step48_1000 next_ui_init: 
+step49_1000 next_ui_init: 
 	cd app && npx create-next-app --typescript ui
 	cd app/ui && npm i -D tailwindcss@latest postcss@latest autoprefixer@latest
 	cd app/ui && npx tailwindcss init -p
-#	cd app/ui && npm i -D typescript @types/react @types/node
-#	cd app/ui && ./node_modules/.bin/tsc --init
 
-step48_1999 next_ui:
+step49_1010 next_ui_dev: 
+	cd app/ui && npm run dev
+	
+step49_1999 next_ui:
 	cd app && rm -rf ui
+
 ##step47_1400 dmarket_create:
 ##	cd dapp && npx create-next-app dmarket
 ##	cd dapp/dmarket && npm i ethers hardhat @nomiclabs/hardhat-waffle
