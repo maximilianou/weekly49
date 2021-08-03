@@ -18,10 +18,19 @@ step49_1000 next_ui_init:
 
 step49_1010 next_ui_dev: 
 	cd app/ui && npm run dev
-	
+		
 step49_1999 next_ui:
 	cd app && rm -rf ui
 
+
+step49_2010 app1_lb_create:
+	cd kubernetes/step01_frontbacksvc && kubectl apply -f .
+
+step49_2020 app1_ns_view:
+	watch kubectl get all -n=app1-ns
+
+step49_2999 app1_ns_delete:
+	kubectl delete namespace app1-ns
 ##step47_1400 dmarket_create:
 ##	cd dapp && npx create-next-app dmarket
 ##	cd dapp/dmarket && npm i ethers hardhat @nomiclabs/hardhat-waffle
