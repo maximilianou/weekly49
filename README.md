@@ -125,3 +125,33 @@ step49_2020 app1_ns_view:
 step49_2999 app1_ns_delete:
 	kubectl delete namespace app1-ns
 ```
+
+----
+- Expose nginx 8080
+```
+$ k3d cluster create dev-cluster
+
+$ kubectl create namespace app1-ns
+namespace/app1-ns created
+$ kubectl create deployment nginx --image=nginx --namespace=app1-ns
+deployment.apps/nginx created
+$ kubectl create service clusterip nginx --tcp=8080:80 --namespace=app1-ns
+service/nginx created
+$ cat <<EOF | kubectl apply -f -
+> apiVersion: networking.k8s.io/v1
+> kind: Ingress
+> metadata:
+>   name: nginx
+>   namespace: app1-ns
+>   annotations:
+>     ingress.kubernetes.io/ssl-redirect: "false"
+> spec:
+>   defaultBackend:
+>     service:
+>       name: nginx
+>       port:
+>         number: 8080
+> EOF
+ingress.networking.k8s.io/nginx created
+```
+----
