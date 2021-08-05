@@ -98,6 +98,16 @@ step49_2999 app1_ns_delete:
 ##	rm -rf denochat
 
 #####################################################
+## Typescript
+step49_5000 ts_init:
+	mkdir -p programming/ts01 && cd programming/ts01 && npm -y init 
+	cd programming/ts01 && npm i -D typescript ts-node
+	cd programming/ts01 && ./node_modules/.bin/tsc --init
+	cd programming/ts01 && npm i -D jest ts-jest @types/jest
+	cd programming/ts01 && npm i -D babel-jest @babel/core @babel/preset-env @babel/preset-typescript 
+	cd programming/ts01 && npx ts-jest config:init
+	
+#####################################################
 ## Functional Programming Typescript / Javascript
 #step46_1000 node_typescript_init:
 #	mkdir -p programming/fp01 && cd programming/fp01 && npm -y init 
@@ -117,7 +127,7 @@ step49_2999 app1_ns_delete:
 
 
 
-step46_1200 node_typescript_clean:
+step46_1200 ts_clean:
 	rm -rf programming
 #####################################################
 
