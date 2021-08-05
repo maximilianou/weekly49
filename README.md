@@ -155,3 +155,71 @@ $ cat <<EOF | kubectl apply -f -
 ingress.networking.k8s.io/nginx created
 ```
 ----
+
+```
+$ kubectl create namespace app1-ns --dry-run=client -o yaml > app1-namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app1-ns
+
+
+$ kubectl create deployment nginx --image=nginx --namespace=app1-ns --dry-run=client -o yaml > nginx-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+  namespace: app1-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+
+
+$ kubectl create service clusterip nginx --tcp=8080:80 --namespace=app1-ns --dry-run=client -o yaml > nginx-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  ports:
+  - name: 8080-80
+    port: 8080
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+- nginx-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: app1-ns
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  defaultBackend:
+    service:
+      name: nginx
+      port:
+        number: 8080
+
+```
+

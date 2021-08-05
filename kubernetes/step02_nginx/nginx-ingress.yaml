@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app2-ingress
+  namespace: app2-ns
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"    
+spec:
+  rules:
+  - host: "app1.simpledoers.com"  
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: app1
+            port:
+              number: 8081
+  - host: "app2.simpledoers.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: app2
+            port:
+              number: 8082
+  defaultBackend:
+    service:
+      name: app2
+      port:
+        number: 8082
