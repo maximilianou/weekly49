@@ -26,7 +26,7 @@ weekly49
   - Project/App Source.
 ----
 ----
-- Cluster Create
+- Minimal Cluster Create online, domain -> lb -> srv -> deploy -> container
 ```
 $ k3d cluster create -p "80:80@loadbalancer" dev-cluster
 ```
