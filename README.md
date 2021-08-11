@@ -151,5 +151,30 @@ spec:
         - image: nginx
           name: app2
 ```
+
+```
+$ kubectl get all --namespace=app2-ns -o wide
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE                       NOMINATED NODE   READINESS GATES
+pod/app1-6d65d7685b-lqff8   1/1     Running   0          17h   10.42.0.9    k3d-dev-cluster-server-0   <none>           <none>
+pod/app2-7b9486d97b-4v27n   1/1     Running   0          17h   10.42.0.10   k3d-dev-cluster-server-0   <none>           <none>
+pod/svclb-app1-5xxfm        0/1     Pending   0          32m   <none>       <none>                     <none>           <none>
+pod/svclb-app2-wllxc        0/1     Pending   0          32m   <none>       <none>                     <none>           <none>
+
+NAME           TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+service/app1   ClusterIP   10.43.94.105   <none>        80/TCP    17h   app=app1
+service/app2   ClusterIP   10.43.95.229   <none>        80/TCP    17h   app=app2
+
+NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE   CONTAINERS   IMAGES                      SELECTOR
+daemonset.apps/svclb-app1   1         1         0       1            0           <none>          32m   lb-port-80   rancher/klipper-lb:v0.2.0   app=svclb-app1
+daemonset.apps/svclb-app2   1         1         0       1            0           <none>          32m   lb-port-80   rancher/klipper-lb:v0.2.0   app=svclb-app2
+
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES   SELECTOR
+deployment.apps/app1   1/1     1            1           17h   app1         nginx    app=app1
+deployment.apps/app2   1/1     1            1           17h   app2         nginx    app=app2
+
+NAME                              DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES   SELECTOR
+replicaset.apps/app1-6d65d7685b   1         1         1       17h   app1         nginx    app=app1,pod-template-hash=6d65d7685b
+replicaset.apps/app2-7b9486d97b   1         1         1       17h   app2         nginx    app=app2,pod-template-hash=7b9486d97b
+```
 ----
 ----
