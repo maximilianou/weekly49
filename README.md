@@ -24,215 +24,134 @@ weekly49
   - Flux Fleet
   - Project Deployment (tenant)
   - Project/App Source.
-
+----
+----
+- Cluster Create
 ```
-curl -fsSL https://raw.githubusercontent.com/lfs269/setup/main/setup_project_repo.sh | bash -
+$ k3d cluster create -p "80:80@loadbalancer" dev-cluster
 ```
-
-```
-sed -i 's/flux-system/instavote/g' *
-```    
-
-```
----
+- app2-namespace.yaml
+```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: app1-ns
----
----
-apiVersion: apps/v1
-kind: Deployment
+  name: app2-ns
+```
+- app-ingress.yaml
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: backend
-  namespace: app1-ns
+  name: app2-ingress
+  namespace: app2-ns
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1  
+    ingress.kubernetes.io/ssl-redirect: "false"    
 spec:
-  selector:
-    matchLabels:
-      app: hello
-      tier: backend
-      track: stable
-  replicas: 3
-  template:
-    metadata:
-      labels:
-        app: hello
-        tier: backend
-        track: stable
-    spec:
-      containers:
-        - name: hello
-          image: "gcr.io/google-samples/hello-go-gke:1.0"
-          ports:
-            - name: http
-              containerPort: 80
----
----
+  rules:
+  - host: "app1.simpledoers.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: app1
+            port:
+              number: 80
+  - host: "app2.simpledoers.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: app2
+            port:
+              number: 80
+  defaultBackend:
+    service:
+      name: app2
+      port:
+        number: 80
+```
+- app1-service.yaml
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: hello
-  namespace: app1-ns
+  name: app1
+  namespace: app2-ns
 spec:
   selector:
-    app: hello
-    tier: backend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: http
----
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello
-  namespace: app1-ns
-spec:
-  selector:
-    app: hello
-    tier: backend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: http
----
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  namespace: app1-ns
-spec:
-  selector:
-    app: hello
-    tier: frontend
-  ports:
-    - protocol: "TCP"
-      port: 80
-      targetPort: 80
+    app: app1
   type: LoadBalancer
----
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
 ```
-
-```
-upstream Backend {
-  server hello;
-}
-server {
-  listen 80;
-  location / {
-    proxy_pass http://Backend;
-  }
-}
-
-```
-
-```
-step49_2010 app1_lb_create:
-	cd kubernetes/step01_frontbacksvc && kubectl apply -f .
-
-step49_2020 app1_ns_view:
-	watch kubectl get all -n=app1-ns
-
-step49_2999 app1_ns_delete:
-	kubectl delete namespace app1-ns
-```
-
-----
-- Expose nginx 8080
-```
-$ k3d cluster create dev-cluster
-
-$ kubectl create namespace app1-ns
-namespace/app1-ns created
-$ kubectl create deployment nginx --image=nginx --namespace=app1-ns
-deployment.apps/nginx created
-$ kubectl create service clusterip nginx --tcp=8080:80 --namespace=app1-ns
-service/nginx created
-$ cat <<EOF | kubectl apply -f -
-> apiVersion: networking.k8s.io/v1
-> kind: Ingress
-> metadata:
->   name: nginx
->   namespace: app1-ns
->   annotations:
->     ingress.kubernetes.io/ssl-redirect: "false"
-> spec:
->   defaultBackend:
->     service:
->       name: nginx
->       port:
->         number: 8080
-> EOF
-ingress.networking.k8s.io/nginx created
-```
-----
-
-```
-$ kubectl create namespace app1-ns --dry-run=client -o yaml > app1-namespace.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: app1-ns
-
-
-$ kubectl create deployment nginx --image=nginx --namespace=app1-ns --dry-run=client -o yaml > nginx-deployment.yaml
+- app1-deploy.yaml
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: nginx
-  name: nginx
-  namespace: app1-ns
+    app: app1
+  name: app1
+  namespace: app2-ns
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: app1
   template:
     metadata:
       labels:
-        app: nginx
+        app: app1
     spec:
       containers:
-      - image: nginx
-        name: nginx
-
-
-$ kubectl create service clusterip nginx --tcp=8080:80 --namespace=app1-ns --dry-run=client -o yaml > nginx-service.yaml
+        - image: nginx
+          name: app1
+```
+- app2-service.yaml
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: nginx
-  name: nginx
+  name: app2
+  namespace: app2-ns
 spec:
-  ports:
-  - name: 8080-80
-    port: 8080
-    protocol: TCP
-    targetPort: 80
   selector:
-    app: nginx
-  type: ClusterIP
-status:
-  loadBalancer: {}
-
-- nginx-ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: nginx
-  namespace: app1-ns
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
-spec:
-  defaultBackend:
-    service:
-      name: nginx
-      port:
-        number: 8080
-
+    app: app2
+  type: LoadBalancer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
 ```
-
+- app2-deploy.yaml
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: app2
+  name: app2
+  namespace: app2-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app2
+  template:
+    metadata:
+      labels:
+        app: app2
+    spec:
+      containers:
+        - image: nginx
+          name: app2
+```
+----
+----
