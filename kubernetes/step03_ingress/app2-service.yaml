@@ -6,7 +6,6 @@ metadata:
 spec:
   selector:
     app: app2
-  type: LoadBalancer
   ports:
     - name: http
       protocol: TCP

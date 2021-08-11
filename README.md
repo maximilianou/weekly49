@@ -85,7 +85,6 @@ metadata:
 spec:
   selector:
     app: app1
-  type: LoadBalancer
   ports:
     - name: http
       protocol: TCP
@@ -124,7 +123,6 @@ metadata:
 spec:
   selector:
     app: app2
-  type: LoadBalancer
   ports:
     - name: http
       protocol: TCP
